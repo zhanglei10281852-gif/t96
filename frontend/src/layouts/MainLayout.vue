@@ -65,6 +65,12 @@ import {
   MenuUnfoldOutlined,
   DownOutlined,
   LogoutOutlined,
+  TeamOutlined,
+  StockOutlined,
+  ShoppingOutlined,
+  SwapOutlined,
+  BarChartOutlined,
+  CheckSquareOutlined,
 } from '@ant-design/icons-vue'
 import { useUserStore } from '@/stores/user'
 
@@ -114,6 +120,42 @@ const allMenuItems = [
     icon: FileTextOutlined,
     label: '补贴报表',
     roles: ['admin', 'worker'],
+  },
+  {
+    key: '/suppliers',
+    icon: TeamOutlined,
+    label: '供应商管理',
+    roles: ['admin', 'canteen'],
+  },
+  {
+    key: '/inventory',
+    icon: StockOutlined,
+    label: '食材库存',
+    roles: ['admin', 'canteen'],
+  },
+  {
+    key: '/purchases',
+    icon: ShoppingOutlined,
+    label: '采购管理',
+    roles: ['admin', 'canteen'],
+  },
+  {
+    key: '/stock-ops',
+    icon: SwapOutlined,
+    label: '出入库流水',
+    roles: ['admin', 'canteen'],
+  },
+  {
+    key: '/analytics',
+    icon: BarChartOutlined,
+    label: '成本分析',
+    roles: ['admin', 'canteen'],
+  },
+  {
+    key: '/inventory-checks',
+    icon: CheckSquareOutlined,
+    label: '库存盘点',
+    roles: ['admin', 'canteen'],
   },
 ]
 

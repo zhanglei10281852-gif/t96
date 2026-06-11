@@ -55,6 +55,66 @@ const routes: RouteRecordRaw[] = [
           roles: ["admin", "worker"],
         },
       },
+      {
+        path: "suppliers",
+        name: "Suppliers",
+        component: () => import("@/views/Suppliers.vue"),
+        meta: {
+          title: "供应商管理",
+          icon: "TeamOutlined",
+          roles: ["admin", "canteen"],
+        },
+      },
+      {
+        path: "inventory",
+        name: "Inventory",
+        component: () => import("@/views/Inventory.vue"),
+        meta: {
+          title: "食材库存",
+          icon: "StockOutlined",
+          roles: ["admin", "canteen"],
+        },
+      },
+      {
+        path: "purchases",
+        name: "Purchases",
+        component: () => import("@/views/Purchases.vue"),
+        meta: {
+          title: "采购管理",
+          icon: "ShoppingOutlined",
+          roles: ["admin", "canteen"],
+        },
+      },
+      {
+        path: "stock-ops",
+        name: "StockOps",
+        component: () => import("@/views/StockOps.vue"),
+        meta: {
+          title: "出入库流水",
+          icon: "SwapOutlined",
+          roles: ["admin", "canteen"],
+        },
+      },
+      {
+        path: "analytics",
+        name: "Analytics",
+        component: () => import("@/views/Analytics.vue"),
+        meta: {
+          title: "成本分析",
+          icon: "BarChartOutlined",
+          roles: ["admin", "canteen"],
+        },
+      },
+      {
+        path: "inventory-checks",
+        name: "InventoryChecks",
+        component: () => import("@/views/InventoryChecks.vue"),
+        meta: {
+          title: "库存盘点",
+          icon: "CheckSquareOutlined",
+          roles: ["admin", "canteen"],
+        },
+      },
     ],
   },
 ];
