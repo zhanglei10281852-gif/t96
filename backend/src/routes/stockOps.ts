@@ -106,9 +106,6 @@ router.post(
   "/stock-out",
   requireRoles("admin", "canteen"),
   async (req: Request, res: Response) => {
-    const session = await mongoose.startSession();
-    session.startTransaction();
-
     try {
       const {
         canteenId,
@@ -121,7 +118,6 @@ router.post(
       } = req.body;
 
       if (!canteenId || !items || items.length === 0 || !receiver || !purpose) {
-        await session.abortTransaction();
         return res.status(400).json({ message: "请填写完整的出库信息" });
       }
 
@@ -129,7 +125,6 @@ router.post(
         req.user?.role === "canteen" &&
         canteenId !== req.user.canteenId?.toString()
       ) {
-        await session.abortTransaction();
         return res.status(403).json({ message: "只能为本助餐点创建出库单" });
       }
 
@@ -146,9 +141,7 @@ router.post(
           ingredientId,
           remainingQuantity: { $gt: 0 },
           status: { $ne: "expired" },
-        })
-          .sort({ expiryDate: 1, stockInDate: 1 })
-          .session(session);
+        }).sort({ expiryDate: 1, stockInDate: 1 });
 
         const totalAvailable = batches.reduce(
           (sum, b) => sum + b.remainingQuantity,
@@ -156,7 +149,6 @@ router.post(
         );
         if (totalAvailable < quantity) {
           const ingredient = await Ingredient.findById(ingredientId);
-          await session.abortTransaction();
           return res.status(400).json({
             message: `${ingredient?.name || "食材"}库存不足，当前可用${totalAvailable}，需要${quantity}`,
           });
@@ -171,7 +163,7 @@ router.post(
           if (remaining <= 0) break;
           const useQty = Math.min(batch.remainingQuantity, remaining);
           batch.remainingQuantity -= useQty;
-          await batch.save({ session });
+          await batch.save();
 
           weightedPrice += useQty * batch.unitPrice;
           totalQty += useQty;
@@ -198,7 +190,6 @@ router.post(
       }
 
       if (processedItems.length === 0) {
-        await session.abortTransaction();
         return res.status(400).json({ message: "没有有效的出库项" });
       }
 
@@ -216,19 +207,15 @@ router.post(
         remark,
       });
 
-      await stockOut.save({ session });
-      await session.commitTransaction();
+      await stockOut.save();
 
       await stockOut.populate("canteenId", "name");
       await stockOut.populate("items.ingredientId", "name unit");
 
       res.status(201).json(stockOut);
     } catch (error: any) {
-      await session.abortTransaction();
       console.error(error);
       res.status(500).json({ message: error.message || "出库失败" });
-    } finally {
-      session.endSession();
     }
   },
 );
@@ -471,9 +458,6 @@ router.post(
   "/checks",
   requireRoles("admin", "canteen"),
   async (req: Request, res: Response) => {
-    const session = await mongoose.startSession();
-    session.startTransaction();
-
     try {
       const {
         canteenId,
@@ -484,7 +468,6 @@ router.post(
       } = req.body;
 
       if (!canteenId || !checkDate || !items || items.length === 0) {
-        await session.abortTransaction();
         return res.status(400).json({ message: "请填写完整的盘点信息" });
       }
 
@@ -492,7 +475,6 @@ router.post(
         req.user?.role === "canteen" &&
         canteenId !== req.user.canteenId?.toString()
       ) {
-        await session.abortTransaction();
         return res.status(403).json({ message: "只能为本助餐点创建盘点单" });
       }
 
@@ -501,9 +483,8 @@ router.post(
       const existing = await InventoryCheck.findOne({
         canteenId,
         checkMonth,
-      }).session(session);
+      });
       if (existing && existing.status === "confirmed") {
-        await session.abortTransaction();
         return res.status(400).json({ message: "该月份已完成盘点" });
       }
 
@@ -549,8 +530,7 @@ router.post(
           existing.confirmedAt = new Date();
         }
 
-        await existing.save({ session });
-        await session.commitTransaction();
+        await existing.save();
         await existing.populate("canteenId", "name");
         res.json(existing);
       } else {
@@ -571,17 +551,13 @@ router.post(
           remark,
         });
 
-        await check.save({ session });
-        await session.commitTransaction();
+        await check.save();
         await check.populate("canteenId", "name");
         res.status(201).json(check);
       }
     } catch (error: any) {
-      await session.abortTransaction();
       console.error(error);
       res.status(500).json({ message: error.message || "创建盘点单失败" });
-    } finally {
-      session.endSession();
     }
   },
 );

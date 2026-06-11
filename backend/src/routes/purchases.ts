@@ -337,17 +337,11 @@ router.post(
   "/:id/stock-in",
   requireRoles("admin", "canteen"),
   async (req: Request, res: Response) => {
-    const session = await mongoose.startSession();
-    session.startTransaction();
-
     try {
       const { items, productionDates } = req.body;
 
-      const order = await PurchaseOrder.findById(req.params.id).session(
-        session,
-      );
+      const order = await PurchaseOrder.findById(req.params.id);
       if (!order) {
-        await session.abortTransaction();
         return res.status(404).json({ message: "采购单不存在" });
       }
 
@@ -355,19 +349,17 @@ router.post(
         req.user?.role === "canteen" &&
         order.canteenId.toString() !== req.user.canteenId?.toString()
       ) {
-        await session.abortTransaction();
         return res.status(403).json({ message: "无权操作此采购单" });
       }
 
       if (order.status !== "approved") {
-        await session.abortTransaction();
         return res.status(400).json({ message: "当前状态不可入库" });
       }
 
       const ingredientMap = new Map();
       const ingredients = await Ingredient.find({
         _id: { $in: order.items.map((i) => i.ingredientId) },
-      }).session(session);
+      });
       ingredients.forEach((ing) => ingredientMap.set(ing._id.toString(), ing));
 
       for (let i = 0; i < order.items.length; i++) {
@@ -387,7 +379,6 @@ router.post(
             orderItem.ingredientId.toString(),
           );
           if (!ingredient) {
-            await session.abortTransaction();
             return res.status(400).json({ message: "食材信息不存在" });
           }
 
@@ -418,7 +409,7 @@ router.post(
             purchaseOrderId: order._id,
           });
 
-          await batch.save({ session });
+          await batch.save();
         }
       }
 
@@ -426,8 +417,7 @@ router.post(
       order.stockedInBy = req.user?._id;
       order.stockedInAt = new Date();
 
-      await order.save({ session });
-      await session.commitTransaction();
+      await order.save();
 
       await order.populate("canteenId", "name");
       await order.populate("supplierId", "name");
@@ -435,11 +425,8 @@ router.post(
 
       res.json(order);
     } catch (error: any) {
-      await session.abortTransaction();
       console.error(error);
       res.status(500).json({ message: error.message || "入库失败" });
-    } finally {
-      session.endSession();
     }
   },
 );

@@ -392,7 +392,7 @@ const defaultOutForm = () => ({
   items: [{ __key: Date.now(), ingredientId: '', quantity: 0 }] as any[],
   receiver: '',
   purpose: '',
-  outDate: dayjs().toDate(),
+  outDate: dayjs(),
   remark: '',
 })
 const outForm = reactive<any>(defaultOutForm())
@@ -440,7 +440,7 @@ async function handleOutSubmit() {
         ingredientId: i.ingredientId, quantity: i.quantity })),
       receiver: outForm.receiver,
       purpose: outForm.purpose,
-      outDate: outForm.outDate,
+      outDate: dayjs(outForm.outDate).format('YYYY-MM-DD'),
       remark: outForm.remark,
     }
     await createStockOut(payload as any)

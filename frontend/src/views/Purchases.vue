@@ -258,6 +258,7 @@
           :pagination="false"
           row-key="ingredientId"
           size="small"
+          :scroll="{ x: 1200 }"
         >
           <template #bodyCell="{ column, record, index }">
             <template v-if="column.key === 'name'">
@@ -288,7 +289,7 @@
               {{ record.ingredientId?.shelfLifeDays }} 天
             </template>
             <template v-else-if="column.key === 'differenceReason'">
-              <a-input v-model:value="record.differenceReason" placeholder="差异说明" />
+              <a-input v-model:value="record.differenceReason" placeholder="差异说明" style="width: 240px" />
             </template>
           </template>
         </a-table>
@@ -373,14 +374,14 @@ const detailItemColumns = [
 ]
 
 const stockInColumns = [
-  { title: '食材', key: 'name', width: 160 },
-  { title: '采购数量', dataIndex: 'quantity', width: 90 },
-  { title: '验收数量', key: 'accepted', width: 130 },
-  { title: '差异', key: 'diff', width: 70 },
-  { title: '单价', dataIndex: 'unitPrice', width: 80, customRender: ({ text }: any) => `¥${Number(text).toFixed(2)}` },
-  { title: '生产日期', key: 'productionDate', width: 150 },
-  { title: '保质期', key: 'shelfLife', width: 80 },
-  { title: '差异说明', key: 'differenceReason' },
+  { title: '食材', key: 'name', width: 180 },
+  { title: '采购数量', dataIndex: 'quantity', width: 100 },
+  { title: '验收数量', key: 'accepted', width: 150 },
+  { title: '差异', key: 'diff', width: 80 },
+  { title: '单价', dataIndex: 'unitPrice', width: 90, customRender: ({ text }: any) => `¥${Number(text).toFixed(2)}` },
+  { title: '生产日期', key: 'productionDate', width: 180 },
+  { title: '保质期', key: 'shelfLife', width: 90 },
+  { title: '差异说明', key: 'differenceReason', width: 260 },
 ]
 
 function formatDate(d: any) {
@@ -431,7 +432,7 @@ const editingId = ref('')
 const defaultForm = () => ({
   canteenId: userStore.userInfo?.role === 'canteen' ? userStore.userInfo?.canteenId : '',
   supplierId: '',
-  purchaseDate: dayjs().toDate(),
+  purchaseDate: dayjs(),
   items: [{ __key: Date.now(), ingredientId: '', quantity: 0, unitPrice: 0 }],
   remark: '',
 })
@@ -470,7 +471,7 @@ function handleEdit(record: PurchaseOrder) {
   Object.assign(formData, {
     canteenId: typeof record.canteenId === 'object' ? record.canteenId._id : record.canteenId,
     supplierId: typeof record.supplierId === 'object' ? record.supplierId._id : record.supplierId,
-    purchaseDate: record.purchaseDate,
+    purchaseDate: dayjs(record.purchaseDate),
     items: record.items.map((i: any, idx: number) => ({
       __key: idx,
       ingredientId: typeof i.ingredientId === 'object' ? i.ingredientId._id : i.ingredientId,
@@ -497,7 +498,7 @@ async function handleFormSubmit() {
     const payload = {
       canteenId: formData.canteenId,
       supplierId: formData.supplierId,
-      purchaseDate: formData.purchaseDate,
+      purchaseDate: dayjs(formData.purchaseDate).format('YYYY-MM-DD'),
       items: validItems.map((i: any) => ({
         ingredientId: i.ingredientId,
         quantity: i.quantity,
